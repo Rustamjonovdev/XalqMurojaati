@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MuammoBot — Turar-joy muammolari platformasi</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0f4ff;--surface:#ffffff;--surface2:#e8eeff;--border:#d0d8f0;
+  --accent:#4f6ef7;--accent2:#3a56e8;--text:#1a2040;--muted:#6b7a9e;
+  --danger:#ef4444;--warn:#f59e0b;--info:#3b82f6;
+}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* AUTH */
+#auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse 60% 50% at 50% -20%,rgba(79,110,247,.15),transparent),
+             radial-gradient(ellipse 40% 30% at 80% 80%,rgba(59,130,246,.1),transparent),var(--bg)}
+.auth-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  width:420px;padding:48px 40px;box-shadow:0 0 0 1px rgba(79,110,247,.08),0 8px 40px rgba(79,110,247,.12)}
+.auth-logo{font-family:'Playfair Display',serif;font-size:28px;color:var(--accent);margin-bottom:8px}.auth-sub{font-size:13px;color:var(--muted);margin-bottom:36px;font-family:'IBM Plex Mono',monospace}
+.auth-label{font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--muted);
+  text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:block}
+.auth-input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);
+  padding:12px 16px;font-size:14px;font-family:'IBM Plex Mono',monospace;
+  border-radius:2px;outline:none;transition:border-color .2s;margin-bottom:20px}
+.auth-input:focus{border-color:var(--accent)}
+.auth-btn{width:100%;background:var(--accent);color:#ffffff;border:none;padding:14px;
+  font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;letter-spacing:1px;
+  text-transform:uppercase;cursor:pointer;border-radius:8px;transition:all .2s;margin-top:8px}
+.auth-btn:hover{background:var(--accent2);transform:translateY(-1px);box-shadow:0 4px 16px rgba(79,110,247,.3)}
+.auth-hint{font-size:11px;color:var(--muted);margin-top:16px;font-family:'IBM Plex Mono',monospace}
+.auth-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);
+  color:#ef4444;padding:10px 14px;font-size:12px;margin-bottom:16px;border-radius:2px;display:none}
+.auth-switch{margin-top:18px;text-align:center;font-size:12px;color:var(--muted);font-family:'IBM Plex Mono',monospace}
+.auth-link{color:var(--accent);cursor:pointer;text-decoration:none}
+.auth-link:hover{text-decoration:underline}
+
+/* LAYOUT */
+#app-screen{display:none;flex-direction:column;min-height:100vh}
+.header{background:var(--surface);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 32px;height:60px;position:sticky;top:0;z-index:100}
+.header-logo{font-family:'Playfair Display',serif;font-size:20px;color:var(--accent)}
+.header-badge{font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--muted);margin-left:10px}
+.header-user{display:flex;align-items:center;gap:16px}
+.header-name{font-size:13px;color:var(--muted);font-family:'IBM Plex Mono',monospace}
+.logout-btn{background:transparent;border:1px solid var(--border);color:var(--muted);
+  padding:7px 16px;font-size:11px;font-family:'IBM Plex Mono',monospace;cursor:pointer;
+  border-radius:2px;transition:all .2s;text-transform:uppercase;letter-spacing:1px}
+.logout-btn:hover{border-color:var(--danger);color:var(--danger)}
+.main-layout{display:flex;flex:1}
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);
+  padding:24px 0;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto;flex-shrink:0}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 24px;cursor:pointer;
+  font-size:13px;color:var(--muted);transition:all .15s;border-left:2px solid transparent;
+  font-family:'IBM Plex Mono',monospace}
+.nav-item:hover{color:var(--accent);background:rgba(79,110,247,.06)}
+.nav-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(79,110,247,.1)}
+.nav-icon{font-size:16px}
+.sidebar-info{margin:24px 16px;padding:16px;background:var(--bg);
+  border:1px solid var(--border);border-radius:2px}
+.sidebar-info-label{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--muted);
+  text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.sidebar-info-name{font-size:13px;margin-bottom:4px}
+.sidebar-info-phone{font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--muted)}
+.sidebar-info-count{margin-top:12px;font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--accent)}
+.content{flex:1;padding:32px;overflow-y:auto;max-width:1100px}
+
+/* PANELS */
+.panel{display:none}
+.panel.active{display:block}
+
+/* PAGE HEADER */
+.page-head{margin-bottom:24px}
+.page-title{font-family:'Playfair Display',serif;font-size:26px;margin-bottom:6px}
+.page-sub{color:var(--muted);font-size:13px}
+
+/* CARD */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:2px;margin-bottom:20px}
+.card-header{padding:18px 24px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between}
+.card-title{font-family:'Playfair Display',serif;font-size:17px}
+.card-body{padding:24px}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{background:var(--surface);border:1px solid var(--border);
+  padding:20px 22px;border-radius:2px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.stat-card.green::before{background:var(--accent)}.stat-card.blue::before{background:var(--info)}
+.stat-card.yellow::before{background:var(--warn)}
+.stat-card.gray::before{background:var(--muted)}
+.stat-val{font-family:'Playfair Display',serif;font-size:36px;line-height:1;margin-bottom:6px}
+.stat-label{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;
+  text-transform:uppercase;letter-spacing:.8px}
+
+/* CHARTS */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.chart-row{margin-bottom:14px}
+.chart-row-top{display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px}
+.chart-row-val{font-family:'IBM Plex Mono',monospace;color:var(--accent)}
+.chart-bar-bg{height:3px;background:var(--bg);border-radius:2px}
+.chart-bar-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .5s}
+.chart-row-val{font-family:'IBM Plex Mono',monospace;color:var(--accent)}
+.region-row{display:flex;justify-content:space-between;padding:8px 0;
+  border-bottom:1px solid var(--border);font-size:13px}
+.region-row:last-child{border-bottom:none}
+.region-count{font-family:'IBM Plex Mono',monospace;color:var(--muted)}
+
+/* FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group.full{grid-column:1/-1}
+.form-label{font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.8px}
+.form-input,.form-select,.form-textarea{
+  background:var(--bg);border:1px solid var(--border);color:var(--text);
+  padding:11px 14px;font-size:13px;font-family:'IBM Plex Sans',sans-serif;
+  border-radius:2px;outline:none;transition:border-color .2s;width:100%}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent)}
+.form-select{cursor:pointer}
+.form-textarea{resize:vertical;min-height:110px}
+.section-title{font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--muted);
+  text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;margin-top:24px;
+  padding-bottom:8px;border-bottom:1px solid var(--border)}
+.section-title:first-child{margin-top:0}
+
+/* CATEGORIES */
+.cat-grid{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.cat-btn{padding:8px 18px;border:1px solid var(--border);border-radius:2px;cursor:pointer;
+  font-size:13px;background:var(--bg);color:var(--text);font-family:'IBM Plex Mono',monospace;
+  transition:all .15s;display:flex;align-items:center;gap:8px}
+.cat-btn:hover{border-color:var(--accent)}
+.cat-btn.selected{border-color:var(--accent);background:rgba(79,110,247,.1);color:var(--accent)}
+
+/* UPLOAD */
+.upload-area{border:1px dashed var(--border);background:var(--bg);padding:28px;
+  text-align:center;cursor:pointer;border-radius:2px;transition:all .2s}
+.upload-area:hover{border-color:var(--accent)}
+.upload-icon{font-size:28px;margin-bottom:8px}
+.upload-text{font-size:12px;color:var(--muted);font-family:'IBM Plex Mono',monospace}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;
+  font-size:12px;font-family:'IBM Plex Mono',monospace;font-weight:500;letter-spacing:.5px;
+  border-radius:2px;cursor:pointer;border:none;transition:all .15s;text-transform:uppercase}
+.btn-primary{background:var(--accent);color:#ffffff}
+.btn-primary:hover{background:var(--accent2);transform:translateY(-1px);box-shadow:0 4px 16px rgba(79,110,247,.3)}
+.btn-secondary{background:transparent;border:1px solid var(--border);color:var(--muted)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm{padding:6px 14px;font-size:11px}
+.btn-archive{background:transparent;border:1px solid var(--border);color:var(--muted);
+  padding:5px 12px;font-size:10px;font-family:'IBM Plex Mono',monospace;cursor:pointer;
+  border-radius:2px;transition:all .15s;text-transform:uppercase;letter-spacing:.5px}
+.btn-archive:hover{border-color:var(--warn);color:var(--warn)}
+.btn-row{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap}
+
+/* SUCCESS BANNER */
+.success-banner{background:rgba(79,110,247,.08);border:1px solid rgba(79,110,247,.25);
+  padding:14px 20px;border-radius:8px;font-size:13px;font-family:'IBM Plex Mono',monospace;
+  color:var(--accent);margin-bottom:20px;display:none;align-items:center;gap:10px}
+
+/* FILTER */
+.filter-bar{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.filter-select{background:var(--bg);border:1px solid var(--border);color:var(--text);
+  padding:8px 12px;font-size:12px;font-family:'IBM Plex Mono',monospace;
+  border-radius:2px;outline:none;cursor:pointer}
+.filter-select:focus{border-color:var(--accent)}
+
+/* TABLE */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead tr{border-bottom:1px solid var(--border)}
+th{padding:12px 16px;font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--muted);
+  text-transform:uppercase;letter-spacing:1px;text-align:left}
+td{padding:13px 16px;font-size:13px;border-bottom:1px solid rgba(37,42,56,.6)}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--surface2);cursor:pointer}
+.app-id{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent)}
+.td-muted{font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--muted)}
+.td-trunc{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;
+  font-size:10px;font-family:'IBM Plex Mono',monospace;letter-spacing:.5px;
+  border-radius:20px;font-weight:500;white-space:nowrap}
+.badge-dot{width:5px;height:5px;border-radius:50%;display:inline-block}
+
+/* APP LIST (user) */
+.app-list-item{background:var(--surface);border:1px solid var(--border);border-radius:2px;
+  padding:18px 22px;display:flex;align-items:center;justify-content:space-between;
+  cursor:pointer;transition:border-color .15s;margin-bottom:12px;flex-wrap:wrap;gap:12px}
+.app-list-item:hover{border-color:rgba(79,110,247,.4);background:rgba(79,110,247,.03)}
+.app-item-left{display:flex;gap:16px;align-items:center}
+.app-cat-icon{font-size:22px}
+.app-item-title{font-weight:500;margin-bottom:4px}
+.app-item-meta{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace}
+.app-item-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.has-reply{font-size:10px;color:var(--accent);font-family:'IBM Plex Mono',monospace}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.empty-text{font-size:13px;font-family:'IBM Plex Mono',monospace}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;
+  display:none;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:2px;
+  width:100%;max-width:680px;max-height:85vh;overflow-y:auto;
+  box-shadow:0 24px 64px rgba(0,0,0,.6)}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:flex-start}
+.modal-close{background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;line-height:1}
+.modal-close:hover{color:var(--text)}
+.modal-body{padding:24px}
+.modal-app-id{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent)}
+.modal-title{font-family:'Playfair Display',serif;font-size:20px;margin-top:6px;margin-bottom:8px}
+.detail-row{display:flex;gap:12px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.detail-row:last-child{border-bottom:none}
+.detail-key{font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.8px;width:140px;flex-shrink:0;padding-top:2px}
+.detail-val{font-size:13px;flex:1;line-height:1.5}
+.detail-val.mono{font-family:'IBM Plex Mono',monospace;font-size:12px}
+.content-box{background:var(--bg);border:1px solid var(--border);padding:16px;
+  border-radius:2px;font-size:13px;line-height:1.7;margin-bottom:12px}
+.admin-reply-box{background:rgba(79,110,247,.06);border:1px solid rgba(79,110,247,.2);
+  padding:16px;border-radius:2px}
+.admin-reply-label{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--accent);
+  text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.admin-reply-text{font-size:13px;line-height:1.6}
+.img-preview{max-width:100%;border-radius:2px;border:1px solid var(--border);margin-top:8px;display:block}
+
+/* NOTIFICATION */
+.notif{position:fixed;top:24px;right:24px;z-index:9999;
+  background:var(--surface);border:1px solid var(--accent);border-left:3px solid var(--accent);
+  padding:14px 20px;border-radius:2px;font-size:13px;font-family:'IBM Plex Mono',monospace;
+  box-shadow:0 8px 32px rgba(0,0,0,.5);max-width:340px;
+  transform:translateX(120%);transition:transform .3s;display:none}
+.notif.show{display:block;transform:translateX(0)}
+
+@media(max-width:768px){
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .form-grid{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .content{padding:16px}
+  .charts-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">MuammoBot</div>
+    <div class="auth-sub" id="auth-mode-sub">// turar-joy muammolari platformasi</div>
+
+    <div class="auth-error" id="auth-error">Telefon raqam yoki parol noto'g'ri</div>
+
+    <!-- LOGIN FORM -->
+    <div id="login-form">
+      <label class="auth-label">Telefon raqam / Login</label>
+      <input class="auth-input" id="auth-phone" placeholder="998XXXXXXXXX" onkeydown="if(event.key==='Enter')doLogin()">
+
+      <label class="auth-label">Parol</label>
+      <input class="auth-input" id="auth-pass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+
+      <button class="auth-btn" onclick="doLogin()">Kirish →</button>
+      <div class="auth-hint">Demo: 998901234567 / 1234 &nbsp;|&nbsp; admin / admin123</div>
+
+      <div class="auth-switch">
+        Hisobingiz yo‘qmi?
+        <span class="auth-link" onclick="toggleAuthMode('register')">Ro‘yxatdan o‘tish</span>
+      </div>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div id="register-form" style="display:none">
+      <label class="auth-label">Ism va familiya</label>
+      <input class="auth-input" id="reg-name" placeholder="Masalan: Ali Valiyev" onkeydown="if(event.key==='Enter')doRegister()">
+
+      <label class="auth-label">Telefon raqam</label>
+      <input class="auth-input" id="reg-phone" placeholder="998XXXXXXXXX" onkeydown="if(event.key==='Enter')doRegister()">
+
+      <label class="auth-label">Parol</label>
+      <input class="auth-input" id="reg-pass" type="password" placeholder="Kamida 4 ta belgi" onkeydown="if(event.key==='Enter')doRegister()">
+
+      <label class="auth-label">Parolni tasdiqlang</label>
+      <input class="auth-input" id="reg-pass2" type="password" placeholder="Parolni qayta kiriting" onkeydown="if(event.key==='Enter')doRegister()">
+
+      <button class="auth-btn" onclick="doRegister()">Ro‘yxatdan o‘tish →</button>
+
+      <div class="auth-switch">
+        Akkauntingiz bormi?
+        <span class="auth-link" onclick="toggleAuthMode('login')">Kirish</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APP SCREEN -->
+<div id="app-screen">
+  <div class="header">
+    <div class="header-logo">MuammoBot<span class="header-badge" id="header-badge"></span></div>
+    <div class="header-user">
+      <span class="header-name" id="header-name"></span>
+      <button class="logout-btn" onclick="doLogout()">Chiqish</button>
+    </div>
+  </div>
+  <div class="main-layout">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="content" id="content-area"></div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal-box">
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <div class="modal-app-id" id="m-id"></div>
+        <div class="modal-title" id="m-title"></div>
+        <div id="m-badge"></div>
+      </div>
+      <button class="modal-close" onclick="closeModalDirect()">×</button>
+    </div>
+    <div class="modal-body" id="m-body"></div>
+  </div>
+</div>
+
+<!-- NOTIFICATION -->
+<div class="notif" id="notif"></div>
+
+<script>
+// ============ STORAGE KEYS ============
+const LS_USERS_KEY = "muammobot_users";
+const LS_APPS_KEY = "muammobot_apps";
+
+// ============ DEFAULT DATA ============
+const DEFAULT_USERS = [
+  {id:1,phone:"998901234567",password:"1234",name:"Alisher Karimov",role:"user"},
+  {id:2,phone:"admin",password:"admin123",name:"Administrator",role:"admin"}
+];
+
+const CATS = ["Elektr","Suv","Yo'l","Chiqindi","Boshqa"];
+const CAT_ICONS = {"Elektr":"⚡","Suv":"💧","Yo'l":"🛣️","Chiqindi":"🗑️","Boshqa":"📋"};
+const VILOYATLAR = ["Toshkent","Samarqand","Buxoro","Andijon","Namangan","Farg'ona","Qashqadaryo","Surxondaryo","Jizzax","Sirdaryo","Navoiy","Xorazm","Qoraqalpog'iston"];
+const STATUS_LABELS = {submitted:"Yuborildi",reviewing:"Ko'rib chiqilmoqda",resolved:"Hal qilindi",archived:"Arxivlandi"};
+const STATUS_COLORS = {submitted:"#f59e0b",reviewing:"#3b82f6",resolved:"#10b981",archived:"#6b7280"};
+
+const DEFAULT_APPS = [
+  {id:101,userId:1,userName:"Alisher Karimov",userPhone:"998901234567",
+   viloyat:"Toshkent",shahar:"Yunusobod",mfy:"Yangi hayot",kocha:"Amir Temur",uy:"45B",
+   mavzu:"Suv ta'minoti to'liq yo'q",mazmun:"3 kundan beri bizning kvartirada suv yo'q. Qo'shnilar ham shikoyat qilmoqda. Tezda hal etilishi kerak.",
+   kategoriya:"Suv",status:"reviewing",date:new Date(Date.now()-86400000*2).toISOString(),
+   adminReply:"",archived:false,img:null},
+  {id:102,userId:1,userName:"Alisher Karimov",userPhone:"998901234567",
+   viloyat:"Toshkent",shahar:"Chilonzor",mfy:"",kocha:"G'alaba",uy:"12",
+   mavzu:"Ko'cha yoritgichlari ishlamayapti",mazmun:"Ko'chadagi barcha fonarlar buzilgan. Kechasi xavfli bo'lib qoldi.",
+   kategoriya:"Elektr",status:"resolved",date:new Date(Date.now()-86400000*5).toISOString(),
+   adminReply:"Muammo bartaraf etildi. Barcha fonarlar almashtirilib, yoqildi.",archived:false,img:null}
+];
+
+// ============ APP STATE ============
+let USERS = [];
+let currentUser = null;
+let currentPanel = "";
+let appIdCounter = 102;
+let apps = [];
+let selectedCat = "";
+let uploadedImg = null;
+
+// ============ STORAGE HELPERS ============
+function initStorage(){
+  if(!localStorage.getItem(LS_USERS_KEY)){
+    localStorage.setItem(LS_USERS_KEY, JSON.stringify(DEFAULT_USERS));
+  }
+  if(!localStorage.getItem(LS_APPS_KEY)){
+    localStorage.setItem(LS_APPS_KEY, JSON.stringify(DEFAULT_APPS));
+  }
+  loadUsers();
+  loadApps();
+}
+
+function loadUsers(){
+  USERS = JSON.parse(localStorage.getItem(LS_USERS_KEY) || "[]");
+}
+
+function saveUsers(){
+  localStorage.setItem(LS_USERS_KEY, JSON.stringify(USERS));
+}
+
+function loadApps(){
+  apps = JSON.parse(localStorage.getItem(LS_APPS_KEY) || "[]");
+  appIdCounter = apps.length ? Math.max(...apps.map(a => a.id)) : 100;
+}
+
+function saveApps(){
+  localStorage.setItem(LS_APPS_KEY, JSON.stringify(apps));
+}
+
+// ============ HELPERS ============
+function fmtDate(d){
+  return new Date(d).toLocaleString("uz-UZ",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
+}
+function badge(status){
+  const c=STATUS_COLORS[status]||"#6b7280";
+  return `<span class="badge" style="background:${c}18;color:${c};border:1px solid ${c}30">
+    <span class="badge-dot" style="background:${c}"></span>${STATUS_LABELS[status]||status}</span>`;
+}
+function showNotif(msg){
+  const el=document.getElementById("notif");
+  el.textContent="✅ "+msg;
+  el.classList.add("show");
+  setTimeout(()=>el.classList.remove("show"),4000);
+}
+function viloyatOptions(selected=""){
+  return '<option value="">Tanlang...</option>'+VILOYATLAR.map(v=>`<option${v===selected?" selected":""}>${v}</option>`).join("");
+}
+function statusOptions(selected=""){
+  return Object.entries(STATUS_LABELS).map(([k,v])=>`<option value="${k}"${k===selected?" selected":""}>${v}</option>`).join("");
+}
+function showAuthError(msg){
+  const el=document.getElementById("auth-error");
+  el.textContent=msg;
+  el.style.display="block";
+}
+function hideAuthError(){
+  document.getElementById("auth-error").style.display="none";
+}
+function clearAuthInputs(){
+  ["auth-phone","auth-pass","reg-name","reg-phone","reg-pass","reg-pass2"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.value="";
+  });
+}
+function toggleAuthMode(mode){
+  hideAuthError();
+  if(mode==="register"){
+    document.getElementById("login-form").style.display="none";
+    document.getElementById("register-form").style.display="block";
+    document.getElementById("auth-mode-sub").textContent="// yangi foydalanuvchi yaratish";
+  }else{
+    document.getElementById("register-form").style.display="none";
+    document.getElementById("login-form").style.display="block";
+    document.getElementById("auth-mode-sub").textContent="// turar-joy muammolari platformasi";
+  }
+}
+
+// ============ AUTH ============
+function doLogin(){
+  loadUsers();
+  const phone=document.getElementById("auth-phone").value.trim();
+  const pass=document.getElementById("auth-pass").value.trim();
+  const user=USERS.find(u=>u.phone===phone&&u.password===pass);
+
+  if(!user){
+    showAuthError("Telefon raqam yoki parol noto'g'ri");
+    return;
+  }
+
+  hideAuthError();
+  currentUser=user;
+  document.getElementById("auth-screen").style.display="none";
+  document.getElementById("app-screen").style.display="flex";
+  document.getElementById("app-screen").style.flexDirection="column";
+  document.getElementById("header-name").textContent=user.name;
+  document.getElementById("header-badge").textContent=user.role==="admin"?" / ADMIN":"";
+  buildSidebar();
+  showPanel(user.role==="admin"?"dashboard":"new-app");
+}
+
+function doRegister(){
+  loadUsers();
+
+  const name=document.getElementById("reg-name").value.trim();
+  const phone=document.getElementById("reg-phone").value.trim();
+  const pass=document.getElementById("reg-pass").value.trim();
+  const pass2=document.getElementById("reg-pass2").value.trim();
+
+  if(!name || !phone || !pass || !pass2){
+    showAuthError("Barcha maydonlarni to'ldiring");
+    return;
+  }
+
+  if(!/^998\d{9}$/.test(phone)){
+    showAuthError("Telefon raqam 998 bilan boshlanib 12 xonali bo'lishi kerak");
+    return;
+  }
+
+  if(pass.length < 4){
+    showAuthError("Parol kamida 4 ta belgidan iborat bo'lishi kerak");
+    return;
+  }
+
+  if(pass !== pass2){
+    showAuthError("Parollar bir xil emas");
+    return;
+  }
+
+  const exists = USERS.some(u => u.phone === phone);
+  if(exists){
+    showAuthError("Bu telefon raqam bilan foydalanuvchi allaqachon mavjud");
+    return;
+  }
+
+  const newUser = {
+    id: USERS.length ? Math.max(...USERS.map(u => u.id)) + 1 : 1,
+    phone,
+    password: pass,
+    name,
+    role: "user"
+  };
+
+  USERS.push(newUser);
+  saveUsers();
+  clearAuthInputs();
+  toggleAuthMode("login");
+  document.getElementById("auth-phone").value = phone;
+  showAuthError("Ro'yxatdan o'tish muvaffaqiyatli. Endi tizimga kiring.");
+}
+
+// ============ LOGOUT ============
+function doLogout(){
+  currentUser=null;
+  document.getElementById("app-screen").style.display="none";
+  document.getElementById("auth-screen").style.display="flex";
+  clearAuthInputs();
+  hideAuthError();
+  toggleAuthMode("login");
+}
+
+// ============ SIDEBAR ============
+function buildSidebar(){
+  const sb=document.getElementById("sidebar");
+  const isAdmin=currentUser.role==="admin";
+  const navs=isAdmin?[
+    {id:"dashboard",icon:"📊",label:"Statistika"},
+    {id:"all-apps",icon:"📋",label:"Barcha arizalar"},
+    {id:"archive",icon:"🗄️",label:"Arxiv"}
+  ]:[
+    {id:"new-app",icon:"✏️",label:"Yangi ariza"},
+    {id:"my-apps",icon:"📋",label:"Arizalarim"}
+  ];
+  let html=navs.map(n=>`<div class="nav-item" id="nav-${n.id}" onclick="showPanel('${n.id}')">
+    <span class="nav-icon">${n.icon}</span>${n.label}</div>`).join("");
+  if(!isAdmin){
+    const cnt=apps.filter(a=>a.userId===currentUser.id).length;
+    html+=`<div class="sidebar-info">
+      <div class="sidebar-info-label">Hisobim</div>
+      <div class="sidebar-info-name">${currentUser.name}</div>
+      <div class="sidebar-info-phone">${currentUser.phone}</div>
+      <div class="sidebar-info-count" id="sb-count">${cnt} ta ariza</div>
+    </div>`;
+  } else {
+    html+=`<div class="sidebar-info" style="border:1px solid rgba(79,110,247,.25);background:rgba(79,110,247,.06)">
+      <div class="sidebar-info-label" style="color:var(--accent)">Admin Panel</div>
+      <div style="font-size:12px;color:var(--muted)">Barcha arizalarga kirish huquqi mavjud</div>
+    </div>`;
+  }
+  sb.innerHTML=html;
+}
+function setActiveNav(id){
+  document.querySelectorAll(".nav-item").forEach(el=>el.classList.remove("active"));
+  const el=document.getElementById("nav-"+id);
+  if(el) el.classList.add("active");
+}
+
+// ============ PANELS ============
+function showPanel(id){
+  currentPanel=id;
+  setActiveNav(id);
+  const ca=document.getElementById("content-area");
+  if(id==="new-app") ca.innerHTML=buildNewApp();
+  else if(id==="my-apps") ca.innerHTML=buildMyApps();
+  else if(id==="dashboard") ca.innerHTML=buildDashboard();
+  else if(id==="all-apps") ca.innerHTML=buildAllApps(false);
+  else if(id==="archive") ca.innerHTML=buildAllApps(true);
+}
+
+// ============ NEW APP ============
+function buildNewApp(){
+  return `<div class="page-head">
+    <div class="page-title">Yangi ariza yuborish</div>
+    <div class="page-sub">Yashash joyingizdagi muammoni batafsil tasvirlab bering</div>
+  </div>
+  <div class="success-banner" id="success-banner">✅ Arizangiz qabul qilindi! — Holat kuzatib borishingiz mumkin.</div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Ariza ma'lumotlari</div></div>
+    <div class="card-body">
+      <div class="section-title">Kategoriya</div>
+      <div class="cat-grid">${CATS.map(c=>`<div class="cat-btn" id="cat-${c}" onclick="selectCat('${c}')">${CAT_ICONS[c]} ${c}</div>`).join("")}</div>
+
+      <div class="section-title">Manzil</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Viloyat *</label>
+          <select class="form-select" id="f-viloyat">${viloyatOptions()}</select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Shahar / Tuman</label>
+          <input class="form-input" id="f-shahar" placeholder="Masalan: Yunusobod">
+        </div>
+        <div class="form-group">
+          <label class="form-label">MFY</label>
+          <input class="form-input" id="f-mfy" placeholder="MFY nomi">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ko'cha</label>
+          <input class="form-input" id="f-kocha" placeholder="Ko'cha nomi">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Uy raqami</label>
+          <input class="form-input" id="f-uy" placeholder="12A">
+        </div>
+      </div>
+
+      <div class="section-title">Muammo haqida</div>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label class="form-label">Ariza mavzusi *</label>
+          <input class="form-input" id="f-mavzu" placeholder="Qisqacha sarlavha">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Ariza mazmuni *</label>
+          <textarea class="form-textarea" id="f-mazmun" placeholder="Muammoni batafsil yozing..."></textarea>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Muammo rasmi (ixtiyoriy)</label>
+          <div class="upload-area" onclick="document.getElementById('f-img').click()">
+            <div class="upload-icon">📷</div>
+            <div class="upload-text" id="upload-text">Rasmni yuklash uchun bosing</div>
+          </div>
+          <input type="file" id="f-img" accept="image/*" style="display:none" onchange="handleImg(this)">
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="submitApp()">Arizani yuborish →</button>
+        <button class="btn btn-secondary" onclick="clearForm()">Tozalash</button>
+      </div>
+    </div>
+  </div>`;
+}
+function selectCat(c){
+  selectedCat=c;
+  document.querySelectorAll(".cat-btn").forEach(el=>el.classList.remove("selected"));
+  const el=document.getElementById("cat-"+c);
+  if(el) el.classList.add("selected");
+}
+function handleImg(inp){
+  if(inp.files&&inp.files[0]){
+    const file=inp.files[0];
+    const reader=new FileReader();
+    reader.onload=e=>{
+      uploadedImg={name:file.name,url:e.target.result};
+      document.getElementById("upload-text").textContent="✅ "+file.name;
+    };
+    reader.readAsDataURL(file);
+  }
+}
+function clearForm(){
+  selectedCat="";uploadedImg=null;
+  document.querySelectorAll(".cat-btn").forEach(el=>el.classList.remove("selected"));
+  ["f-viloyat","f-shahar","f-mfy","f-kocha","f-uy","f-mavzu","f-mazmun"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.value="";
+  });
+  const ut=document.getElementById("upload-text");
+  if(ut) ut.textContent="Rasmni yuklash uchun bosing";
+}
+function submitApp(){
+  const vil=document.getElementById("f-viloyat").value;
+  const mavzu=document.getElementById("f-mavzu").value.trim();
+  const mazmun=document.getElementById("f-mazmun").value.trim();
+  if(!vil||!mavzu||!mazmun||!selectedCat){
+    alert("Majburiy maydonlarni to'ldiring!\n(Kategoriya, Viloyat, Mavzu, Mazmun)");
+    return;
+  }
+  const newApp={
+    id:++appIdCounter,userId:currentUser.id,userName:currentUser.name,userPhone:currentUser.phone,
+    viloyat:vil,shahar:document.getElementById("f-shahar").value,
+    mfy:document.getElementById("f-mfy").value,
+    kocha:document.getElementById("f-kocha").value,
+    uy:document.getElementById("f-uy").value,
+    mavzu,mazmun,kategoriya:selectedCat,
+    status:"submitted",date:new Date().toISOString(),
+    adminReply:"",archived:false,img:uploadedImg
+  };
+  apps.unshift(newApp);
+  saveApps();
+
+  const sb=document.getElementById("success-banner");
+  if(sb){
+    sb.innerHTML=`✅ Arizangiz qabul qilindi! ID: <strong>#${newApp.id}</strong> — Holat kuzatib borishingiz mumkin.`;
+    sb.style.display="flex";
+  }
+  clearForm();
+  updateSidebarCount();
+  showNotif(`Ariza #${newApp.id} muvaffaqiyatli yuborildi!`);
+}
+function updateSidebarCount(){
+  const el=document.getElementById("sb-count");
+  if(el) el.textContent=apps.filter(a=>a.userId===currentUser.id).length+" ta ariza";
+}
+
+// ============ MY APPS ============
+function buildMyApps(){
+  const myApps=apps.filter(a=>a.userId===currentUser.id);
+  let rows=myApps.length?myApps.map(a=>`
+    <div class="app-list-item" onclick="openModal(${a.id})">
+      <div class="app-item-left">
+        <div class="app-cat-icon">${CAT_ICONS[a.kategoriya]||"📋"}</div>
+        <div>
+          <div class="app-item-title">${a.mavzu}</div>
+          <div class="app-item-meta">#${a.id} · ${a.viloyat}${a.shahar?", "+a.shahar:""} · ${fmtDate(a.date)}</div>
+        </div>
+      </div>
+      <div class="app-item-right">
+        ${badge(a.status)}
+        ${a.adminReply?'<div class="has-reply">💬 Javob bor</div>':""}
+      </div>
+    </div>`).join("")
+  :`<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">Hali ariza yuborilmagan</div></div>`;
+  return `<div class="page-head">
+    <div class="page-title">Arizalar tarixi</div>
+    <div class="page-sub">Barcha yuborilgan arizalaringiz</div>
+  </div>${rows}`;
+}
+
+// ============ DASHBOARD ============
+function buildDashboard(){
+  const total=apps.length;
+  const submitted=apps.filter(a=>a.status==="submitted").length;
+  const reviewing=apps.filter(a=>a.status==="reviewing").length;
+  const resolved=apps.filter(a=>a.status==="resolved").length;
+
+  let catRows=CATS.map(cat=>{
+    const cnt=apps.filter(a=>a.kategoriya===cat).length;
+    const pct=total?Math.round(cnt/total*100):0;
+    return `<div class="chart-row">
+      <div class="chart-row-top"><span>${CAT_ICONS[cat]} ${cat}</span><span class="chart-row-val">${cnt}</span></div>
+      <div class="chart-bar-bg"><div class="chart-bar-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join("");
+
+  const usedVils=VILOYATLAR.filter(v=>apps.some(a=>a.viloyat===v));
+  let vilRows=usedVils.length?usedVils.map(v=>{
+    const cnt=apps.filter(a=>a.viloyat===v).length;
+    return `<div class="region-row"><span>${v}</span><span class="region-count">${cnt} ta</span></div>`;
+  }).join(""):`<div style="color:var(--muted);font-size:13px">Ma'lumot yo'q</div>`;
+
+  return `<div class="page-head">
+    <div class="page-title">Statistika</div>
+    <div class="page-sub">Tizim bo'yicha umumiy ko'rsatkichlar</div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card green"><div class="stat-val">${total}</div><div class="stat-label">Jami arizalar</div></div>
+    <div class="stat-card yellow"><div class="stat-val">${submitted}</div><div class="stat-label">Yangi</div></div>
+    <div class="stat-card blue"><div class="stat-val">${reviewing}</div><div class="stat-label">Ko'rib chiqilmoqda</div></div>
+    <div class="stat-card gray"><div class="stat-val">${resolved}</div><div class="stat-label">Hal qilingan</div></div>
+  </div>
+  <div class="charts-grid">
+    <div class="card">
+      <div class="card-header"><div class="card-title" style="font-size:15px">Kategoriya bo'yicha</div></div>
+      <div class="card-body">${catRows}</div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title" style="font-size:15px">Viloyat bo'yicha</div></div>
+      <div class="card-body">${vilRows}</div>
+    </div>
+  </div>`;
+}
+
+// ============ ALL APPS / ARCHIVE ============
+function buildAllApps(isArchive){
+  return renderAllApps(isArchive,"","","");
+}
+function renderAllApps(isArchive,fStatus,fVil,fCat){
+  let list=(isArchive?apps.filter(a=>a.archived):apps.filter(a=>!a.archived))
+    .filter(a=>(!fStatus||a.status===fStatus)&&(!fVil||a.viloyat===fVil)&&(!fCat||a.kategoriya===fCat));
+
+  const title=isArchive?"Arxiv":"Barcha arizalar";
+  const archiveFlag=isArchive?"true":"false";
+
+  let rows=list.length?list.map(a=>`<tr onclick="openModal(${a.id})">
+    <td><span class="app-id">#${a.id}</span></td>
+    <td>${CAT_ICONS[a.kategoriya]||""} ${a.kategoriya}</td>
+    <td><div class="td-trunc">${a.mavzu}</div></td>
+    <td class="td-muted">${a.viloyat}${a.shahar?", "+a.shahar:""}</td>
+    <td style="font-size:12px">${a.userName}</td>
+    <td class="td-muted">${fmtDate(a.date)}</td>
+    <td>${badge(a.status)}</td>
+    <td onclick="event.stopPropagation()">${!a.archived?`<button class="btn-archive" onclick="archiveApp(${a.id})">Arxiv</button>`:""}</td>
+  </tr>`).join("")
+  :`<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">Arizalar topilmadi</div></div></td></tr>`;
+
+  return `<div class="page-head">
+    <div class="page-title">${title}</div>
+    <div class="page-sub">${list.length} ta ariza topildi</div>
+  </div>
+  <div class="filter-bar">
+    <select class="filter-select" id="filter-status" onchange="applyFilters(${archiveFlag})">
+      <option value="">Barcha statuslar</option>${statusOptions(fStatus)}
+    </select>
+    <select class="filter-select" id="filter-vil" onchange="applyFilters(${archiveFlag})">
+      <option value="">Barcha viloyatlar</option>${VILOYATLAR.map(v=>`<option${v===fVil?" selected":""}>${v}</option>`).join("")}
+    </select>
+    <select class="filter-select" id="filter-cat" onchange="applyFilters(${archiveFlag})">
+      <option value="">Barcha kategoriyalar</option>${CATS.map(c=>`<option${c===fCat?" selected":""}>${c}</option>`).join("")}
+    </select>
+    ${(fStatus||fVil||fCat)?`<button class="btn btn-secondary btn-sm" onclick="clearFilters(${archiveFlag})">✕ Tozalash</button>`:""}
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ID</th><th>Kategoriya</th><th>Mavzu</th><th>Manzil</th><th>Foydalanuvchi</th><th>Sana</th><th>Status</th><th></th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+function applyFilters(isArchive){
+  const fStatus=document.getElementById("filter-status").value;
+  const fVil=document.getElementById("filter-vil").value;
+  const fCat=document.getElementById("filter-cat").value;
+  document.getElementById("content-area").innerHTML=renderAllApps(isArchive,fStatus,fVil,fCat);
+}
+function clearFilters(isArchive){
+  document.getElementById("content-area").innerHTML=renderAllApps(isArchive,"","","");
+}
+function archiveApp(id){
+  const a=apps.find(x=>x.id===id);
+  if(!a)return;
+  a.archived=true;
+  a.status="archived";
+  saveApps();
+  showNotif(`Ariza #${id} arxivlandi.`);
+  showPanel(currentPanel);
+}
+
+// ============ MODAL ============
+function openModal(id){
+  const a=apps.find(x=>x.id===id);
+  if(!a)return;
+  const isAdmin=currentUser.role==="admin";
+  document.getElementById("m-id").textContent="#"+a.id;
+  document.getElementById("m-title").textContent=a.mavzu;
+  document.getElementById("m-badge").innerHTML=badge(a.status);
+
+  let body=`
+    <div class="section-title">Umumiy ma'lumot</div>
+    <div class="detail-row"><div class="detail-key">Kategoriya</div><div class="detail-val">${CAT_ICONS[a.kategoriya]||""} ${a.kategoriya}</div></div>
+    <div class="detail-row"><div class="detail-key">Sana</div><div class="detail-val mono">${fmtDate(a.date)}</div></div>`;
+
+  if(isAdmin){
+    body+=`<div class="detail-row"><div class="detail-key">Foydalanuvchi</div><div class="detail-val">${a.userName}</div></div>
+    <div class="detail-row"><div class="detail-key">Telefon</div><div class="detail-val mono">${a.userPhone}</div></div>`;
+  }
+
+  body+=`<div class="section-title">Manzil</div>
+    <div class="detail-row"><div class="detail-key">Viloyat</div><div class="detail-val">${a.viloyat}</div></div>`;
+  if(a.shahar) body+=`<div class="detail-row"><div class="detail-key">Shahar/Tuman</div><div class="detail-val">${a.shahar}</div></div>`;
+  if(a.mfy) body+=`<div class="detail-row"><div class="detail-key">MFY</div><div class="detail-val">${a.mfy}</div></div>`;
+  if(a.kocha) body+=`<div class="detail-row"><div class="detail-key">Ko'cha</div><div class="detail-val">${a.kocha}</div></div>`;
+  if(a.uy) body+=`<div class="detail-row"><div class="detail-key">Uy raqami</div><div class="detail-val">${a.uy}</div></div>`;
+
+  body+=`<div class="section-title">Muammo mazmuni</div>
+    <div class="content-box">${a.mazmun}</div>`;
+  if(a.img) body+=`<img src="${a.img.url}" class="img-preview" alt="muammo">`;
+
+  if(isAdmin){
+    body+=`<div class="section-title">Status va javob</div>
+      <div class="form-group" style="margin-bottom:16px">
+        <label class="form-label">Statusni o'zgartirish</label>
+        <select class="form-select" id="modal-status">${statusOptions(a.status)}</select>
+      </div>
+      <div class="form-group" style="margin-bottom:16px">
+        <label class="form-label">Admin javobi</label>
+        <textarea class="form-textarea" id="modal-reply" placeholder="Fuqaroga javob yozing...">${a.adminReply||""}</textarea>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveModal(${a.id})">Saqlash</button>
+        <button class="btn btn-secondary" onclick="closeModalDirect()">Yopish</button>
+      </div>`;
+  } else if(a.adminReply){
+    body+=`<div class="section-title">Admin javobi</div>
+      <div class="admin-reply-box">
+        <div class="admin-reply-label">✉️ Admin javobi</div>
+        <div class="admin-reply-text">${a.adminReply}</div>
+      </div>`;
+  }
+
+  document.getElementById("m-body").innerHTML=body;
+  document.getElementById("modal-overlay").classList.add("open");
+}
+function saveModal(id){
+  const a=apps.find(x=>x.id===id);
+  if(!a)return;
+  const status=document.getElementById("modal-status").value;
+  const reply=document.getElementById("modal-reply").value;
+  a.status=status;
+  a.adminReply=reply;
+  saveApps();
+  document.getElementById("m-badge").innerHTML=badge(a.status);
+  showNotif(`Ariza #${id} yangilandi: ${STATUS_LABELS[status]}`);
+  if(currentPanel==="dashboard") showPanel("dashboard");
+  if(currentPanel==="all-apps") showPanel("all-apps");
+  if(currentPanel==="archive") showPanel("archive");
+}
+function closeModal(e){
+  if(e.target===document.getElementById("modal-overlay")) closeModalDirect();
+}
+function closeModalDirect(){
+  document.getElementById("modal-overlay").classList.remove("open");
+}
+
+// ============ INIT ============
+initStorage();
+toggleAuthMode("login");
+</script>
+</body>
+</html>
